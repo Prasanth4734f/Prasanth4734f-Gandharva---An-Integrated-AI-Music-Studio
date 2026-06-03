@@ -1,0 +1,26 @@
+{
+    "language": "Global",
+    "structures": [
+        "Verse",
+        "Chorus",
+        "Pre-Chorus",
+        "Bridge",
+        "Outro"
+    ],
+    "instruments": [
+        "Acoustic Guitar",
+        "Electric Guitar",
+        "Piano",
+        "Synthesizer",
+        "Drum Kit",
+        "Bass"
+    ],
+    "cultural_idioms": [
+        "Love",
+        "Heart",
+        "Night",
+        "Dream",
+        "Soul"
+    ],
+    "rules": "Format the lyrics using standard Western pop structures (Verse, Chorus, Bridge)."
+}

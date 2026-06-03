@@ -1,0 +1,23 @@
+{
+    "language": "Telugu",
+    "structures": [
+        "Pallavi (Chorus / Hook)",
+        "Charanam (Verse)",
+        "Anupallavi (Pre-Chorus)"
+    ],
+    "instruments": [
+        "Veena",
+        "Mridangam",
+        "Nadaswaram",
+        "Thavil",
+        "Ghatam"
+    ],
+    "cultural_idioms": [
+        "Prema (Love)",
+        "Manasu (Mind/Heart)",
+        "Jeevitham (Life)",
+        "Vennela (Moonlight)",
+        "Kala (Dream/Art)"
+    ],
+    "rules": "Format the lyrics using 'Pallavi', 'Anupallavi', and 'Charanam' instead of Western song structures. Maintain deep Carnatic roots if traditional music is requested."
+}

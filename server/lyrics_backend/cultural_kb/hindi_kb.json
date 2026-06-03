@@ -1,0 +1,25 @@
+{
+    "language": "Hindi",
+    "structures": [
+        "Mukhda (Chorus / Hook)",
+        "Antara (Verse)",
+        "Sargam (Classical Note Progressions)",
+        "Alaap (Vocal introduction)"
+    ],
+    "instruments": [
+        "Tabla",
+        "Sitar",
+        "Bansuri (Bamboo Flute)",
+        "Dholak",
+        "Sarangi",
+        "Harmonium"
+    ],
+    "cultural_idioms": [
+        "Dil (Heart)",
+        "Ishq (Love/Passion)",
+        "Zindagi (Life)",
+        "Baarish (Rain)",
+        "Khwab (Dreams)"
+    ],
+    "rules": "Format the lyrics using 'Mukhda' and 'Antara' instead of 'Chorus' and 'Verse'. Incorporate traditional Hindustani classical vibes if requested."
+}
