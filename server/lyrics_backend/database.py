@@ -1,25 +1,27 @@
 """
-database.py - SQLModel-compatible database engine for GANDHARVA AI Studio.
-Uses SQLite by default. Set GANDHARVA_DB_URL env var to override.
+database.py - Supabase REST API client for GANDHARVA AI Studio.
 """
 import os
-from sqlmodel import SQLModel, create_engine, Session
+from supabase import create_client, Client
+from dotenv import load_dotenv
 
-DATABASE_URL = os.getenv('GANDHARVA_DB_URL', 'sqlite:///./gandharva.db')
+# Load environment variables from parent server/.env
+env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".env"))
+load_dotenv(dotenv_path=env_path, override=True)
 
-engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False} if DATABASE_URL.startswith('sqlite') else {},
-    echo=False  # Set to True for SQL debugging
-)
+url: str = os.getenv("SUPABASE_URL", "").strip('"').strip("'").strip()
+service_role_key: str = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip('"').strip("'").strip()
+anon_key: str = os.getenv("SUPABASE_KEY", "").strip('"').strip("'").strip()
 
+key = service_role_key if service_role_key else anon_key
+
+supabase: Client = None
+
+if url and key and key != "[YOUR-ANON-API-KEY]":
+    supabase = create_client(url, key)
+else:
+    print("[Warning] SUPABASE_URL or SUPABASE_KEY is missing or not set. Database operations will fail.")
 
 def get_db():
-    """Dependency that yields a database session."""
-    with Session(engine) as session:
-        yield session
-
-
-def create_db_and_tables():
-    """Create all SQLModel tables. Safe to call multiple times."""
-    SQLModel.metadata.create_all(engine)
+    """Returns the Supabase REST client."""
+    return supabase

@@ -1,32 +1,33 @@
-import apiClient from './apiClient';
+import CONFIG from '../config/api.config';
 
-/**
- * Upload vocal audio and generate a backtrack
- * Handles multipart/form-data for file uploads
- */
-export const uploadVocalAndMix = async (fileUri, fileName) => {
+export const uploadVocalAndMix = async (fileUri, fileName, onProgress) => {
   const formData = new FormData();
   formData.append('vocalFile', {
     uri: fileUri,
-    name: fileName || 'vocal_recording.mp4',
-    type: 'audio/m4a', // Default for Expo recording
+    name: fileName || 'vocal_recording.m4a',
+    type: 'audio/m4a',
   });
 
-  // Note: apiClient needs to handle FormData differently (no Content-Type header)
-  // For simplicity here, we use a separate fetch call or update apiClient
-  // I'll use a direct fetch here to avoid breaking the generic apiClient JSON logic
+  // Since React Native fetch doesn't easily support upload progress without XMLHttpRequest,
+  // we simulate the pipeline steps in the UI by passing callbacks.
+  if(onProgress) onProgress('analyzing');
+  await new Promise(r => setTimeout(r, 2000));
   
-  // Actually, I'll update apiClient to support FormData or just use it here.
-  // Let's use it here for clarity.
+  if(onProgress) onProgress('generating');
+  await new Promise(r => setTimeout(r, 3000));
   
-  const BASE_URL = 'http://localhost:3000'; // Fallback to local if config fails
-  const API_URL = '/api/vocal-upload';
+  if(onProgress) onProgress('mixing');
 
-  // For now, let's keep it simple and just use the same pattern
-  return await apiClient('/vocal-upload', {
+  const response = await fetch(`${CONFIG.API_URL}/vocal-mix`, {
     method: 'POST',
-    // FormData doesn't need Content-Type JSON, fetch handles it
-    headers: {}, 
     body: formData,
   });
+
+  if (!response.ok) {
+    throw new Error('Failed to process vocal track.');
+  }
+
+  const data = await response.json();
+  if(onProgress) onProgress('done');
+  return data;
 };

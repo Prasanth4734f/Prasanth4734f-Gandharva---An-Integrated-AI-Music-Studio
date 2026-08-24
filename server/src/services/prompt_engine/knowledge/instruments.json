@@ -1,0 +1,48 @@
+{
+  "Piano": {
+    "score": 90,
+    "tags": [
+      "sad",
+      "romantic",
+      "chill"
+    ]
+  },
+  "Violin": {
+    "score": 85,
+    "tags": [
+      "sad",
+      "romantic",
+      "cinematic"
+    ]
+  },
+  "Cello": {
+    "score": 88,
+    "tags": [
+      "sad",
+      "cinematic"
+    ]
+  },
+  "Synth Bass": {
+    "score": 95,
+    "tags": [
+      "edm",
+      "angry",
+      "fast"
+    ]
+  },
+  "Acoustic Guitar": {
+    "score": 80,
+    "tags": [
+      "romantic",
+      "chill",
+      "happy"
+    ]
+  },
+  "Electric Guitar": {
+    "score": 85,
+    "tags": [
+      "angry",
+      "rock"
+    ]
+  }
+}

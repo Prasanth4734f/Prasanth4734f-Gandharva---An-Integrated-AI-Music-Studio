@@ -1,15 +1,46 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Share, Alert } from 'react-native';
 import { ChevronDown, Play, Pause, SkipBack, SkipForward, Repeat, Shuffle, Heart, Share2, Download, Volume2, ListMusic } from 'lucide-react-native';
 import ScreenContainer from '../../components/ScreenContainer';
 import { COLORS, SIZES, SPACING } from '../../constants/theme';
+import { saveProjectToLibrary } from '../../services/libraryStorage';
 
 const { width } = Dimensions.get('window');
-const ART_SIZE = width * 0.8;
+const ART_SIZE = width * 0.75;
 
 const MusicPlayerScreen = ({ navigation, route }) => {
+  const songTitle = route?.params?.title || 'Neon Shadows';
+  const artist = route?.params?.artist || 'Gandharva AI • Cinematic';
+  const audioUrl = route?.params?.audioUrl || null;
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
+  const [isShuffle, setIsShuffle] = useState(false);
+  const [isRepeat, setIsRepeat] = useState(false);
+
+  const handleShare = async () => {
+    try {
+      await Share.share({
+        title: songTitle,
+        message: `Listen to "${songTitle}" created with Gandharva AI Studio! 🎵`,
+      });
+    } catch (e) {}
+  };
+
+  const handleSaveToLibrary = async () => {
+    try {
+      await saveProjectToLibrary({
+        id: `player-save-${Date.now()}`,
+        name: songTitle,
+        genre: 'AI Production',
+        mood: 'Cinematic',
+        music: audioUrl ? [{ audio_url: audioUrl, variation_name: 'Player Track' }] : []
+      });
+      Alert.alert('Saved to Library 🎵', `"${songTitle}" has been saved to your studio library.`);
+    } catch (e) {
+      Alert.alert('Error', 'Could not save track to library.');
+    }
+  };
 
   return (
     <ScreenContainer style={styles.container}>
@@ -19,7 +50,7 @@ const MusicPlayerScreen = ({ navigation, route }) => {
           <ChevronDown color={COLORS.white} size={30} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Now Playing</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('Main', { screen: 'LibraryTab' })}>
           <ListMusic color={COLORS.white} size={24} />
         </TouchableOpacity>
       </View>
@@ -37,9 +68,9 @@ const MusicPlayerScreen = ({ navigation, route }) => {
 
       {/* Info */}
       <View style={styles.infoContainer}>
-        <View>
-          <Text style={styles.songTitle}>Neon Shadows</Text>
-          <Text style={styles.artistName}>AI Generated • Cinematic</Text>
+        <View style={{ flex: 1, paddingRight: 10 }}>
+          <Text style={styles.songTitle} numberOfLines={1}>{songTitle}</Text>
+          <Text style={styles.artistName} numberOfLines={1}>{artist}</Text>
         </View>
         <TouchableOpacity onPress={() => setIsLiked(!isLiked)}>
           <Heart color={isLiked ? COLORS.accent : COLORS.white} fill={isLiked ? COLORS.accent : 'transparent'} size={28} />
@@ -49,41 +80,41 @@ const MusicPlayerScreen = ({ navigation, route }) => {
       {/* Seekbar */}
       <View style={styles.seekContainer}>
         <View style={styles.seekTrack}>
-          <View style={[styles.seekProgress, { width: '45%' }]} />
-          <View style={[styles.seekKnob, { left: '45%' }]} />
+          <View style={[styles.seekProgress, { width: isPlaying ? '65%' : '0%' }]} />
+          <View style={[styles.seekKnob, { left: isPlaying ? '65%' : '0%' }]} />
         </View>
         <View style={styles.timeRow}>
-          <Text style={styles.timeText}>1:12</Text>
+          <Text style={styles.timeText}>{isPlaying ? '1:42' : '0:00'}</Text>
           <Text style={styles.timeText}>2:45</Text>
         </View>
       </View>
 
       {/* Main Controls */}
       <View style={styles.controlsRow}>
-        <TouchableOpacity>
-          <Shuffle color={COLORS.textMuted} size={20} />
+        <TouchableOpacity onPress={() => setIsShuffle(!isShuffle)}>
+          <Shuffle color={isShuffle ? COLORS.secondary : COLORS.textMuted} size={22} />
         </TouchableOpacity>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => Alert.alert('Previous Track', 'Jumped to previous track in playlist.')}>
           <SkipBack color={COLORS.white} size={32} fill={COLORS.white} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.playBtn} onPress={() => setIsPlaying(!isPlaying)}>
           {isPlaying ? <Pause color={COLORS.background} size={32} fill={COLORS.background} /> : <Play color={COLORS.background} size={32} fill={COLORS.background} style={{ marginLeft: 4 }} />}
         </TouchableOpacity>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => Alert.alert('Next Track', 'Jumped to next track in playlist.')}>
           <SkipForward color={COLORS.white} size={32} fill={COLORS.white} />
         </TouchableOpacity>
-        <TouchableOpacity>
-          <Repeat color={COLORS.textMuted} size={20} />
+        <TouchableOpacity onPress={() => setIsRepeat(!isRepeat)}>
+          <Repeat color={isRepeat ? COLORS.secondary : COLORS.textMuted} size={22} />
         </TouchableOpacity>
       </View>
 
       {/* Bottom Actions */}
       <View style={styles.bottomActions}>
-        <TouchableOpacity style={styles.actionItem}>
+        <TouchableOpacity style={styles.actionItem} onPress={handleShare}>
           <Share2 color={COLORS.white} size={22} />
           <Text style={styles.actionLabel}>Share</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionItem}>
+        <TouchableOpacity style={styles.actionItem} onPress={handleSaveToLibrary}>
           <Download color={COLORS.white} size={22} />
           <Text style={styles.actionLabel}>Save</Text>
         </TouchableOpacity>
@@ -107,7 +138,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: SPACING.lg,
-    marginBottom: SPACING.xxl,
+    marginBottom: SPACING.xl,
   },
   headerTitle: {
     color: COLORS.white,
@@ -118,7 +149,7 @@ const styles = StyleSheet.create({
   },
   artContainer: {
     alignItems: 'center',
-    marginVertical: SPACING.xl,
+    marginVertical: SPACING.lg,
   },
   artWrapper: {
     width: ART_SIZE,
@@ -165,7 +196,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: SPACING.xxl,
+    marginBottom: SPACING.xl,
   },
   songTitle: {
     color: COLORS.white,
@@ -178,7 +209,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   seekContainer: {
-    marginBottom: SPACING.xxl,
+    marginBottom: SPACING.xl,
   },
   seekTrack: {
     height: 4,
@@ -213,7 +244,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: SPACING.xxl,
+    marginBottom: SPACING.xl,
   },
   playBtn: {
     width: 72,
@@ -228,7 +259,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: SPACING.lg,
+    marginTop: SPACING.md,
   },
   actionItem: {
     alignItems: 'center',

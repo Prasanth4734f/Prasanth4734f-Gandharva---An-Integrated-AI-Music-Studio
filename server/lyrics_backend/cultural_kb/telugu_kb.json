@@ -17,7 +17,12 @@
         "Manasu (Mind/Heart)",
         "Jeevitham (Life)",
         "Vennela (Moonlight)",
-        "Kala (Dream/Art)"
+        "Kala (Dream/Art)",
+        "Sankranti (Harvest Festival)",
+        "Bonalu (Regional Festival)",
+        "Bathukamma (Festival of Flowers)",
+        "Paddy Fields (Fields of Rice)",
+        "Village Wells (Community Hub)"
     ],
     "rules": "Format the lyrics using 'Pallavi', 'Anupallavi', and 'Charanam' instead of Western song structures. Maintain deep Carnatic roots if traditional music is requested."
 }

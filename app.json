@@ -21,10 +21,17 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.nusicgen.app"
+      "package": "com.nusicgen.app",
+      "usesCleartextTraffic": true
     },
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
     },
     "plugins": [
       "expo-asset"

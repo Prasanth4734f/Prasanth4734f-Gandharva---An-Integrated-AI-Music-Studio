@@ -25,6 +25,12 @@ class MusicResponse(BaseModel):
     enhanced_prompt: str
     variations: List[MusicVariationResponse]
 
+class PromptEnhanceRequest(BaseModel):
+    prompt: str = Field(..., min_length=1, description="Basic prompt to enhance.")
+
+class PromptEnhanceResponse(BaseModel):
+    enhanced_prompt: str
+
 # ============================================================
 # Lyrics Generation Schemas
 # ============================================================
@@ -90,3 +96,19 @@ class ProjectSaveRequest(BaseModel):
     enhanced_prompt: Optional[str] = ""
     genre: Optional[str] = None
     mood: Optional[str] = None
+
+# ============================================================
+# Vocal Studio Job Schemas
+# ============================================================
+class JobResponse(BaseModel):
+    job_id: str
+    status: str
+    message: str
+
+class JobStatusResponse(BaseModel):
+    job_id: str
+    status: str
+    progress: int
+    step: str
+    result: Optional[dict] = None
+    error: Optional[str] = None

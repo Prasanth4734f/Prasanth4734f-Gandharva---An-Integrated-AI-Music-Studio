@@ -1,0 +1,47 @@
+{
+  "sad": {
+    "tempo_range": [
+      60,
+      82
+    ],
+    "key": "Minor",
+    "energy": "Low",
+    "brightness": "Dark"
+  },
+  "romantic": {
+    "tempo_range": [
+      70,
+      90
+    ],
+    "key": "Major",
+    "energy": "Medium",
+    "brightness": "Warm"
+  },
+  "happy": {
+    "tempo_range": [
+      110,
+      130
+    ],
+    "key": "Major",
+    "energy": "High",
+    "brightness": "Bright"
+  },
+  "angry": {
+    "tempo_range": [
+      120,
+      150
+    ],
+    "key": "Minor",
+    "energy": "High",
+    "brightness": "Dark"
+  },
+  "chill": {
+    "tempo_range": [
+      80,
+      95
+    ],
+    "key": "Major",
+    "energy": "Low",
+    "brightness": "Warm"
+  }
+}

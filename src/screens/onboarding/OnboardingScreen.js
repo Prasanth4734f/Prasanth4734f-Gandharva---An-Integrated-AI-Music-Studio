@@ -2,29 +2,34 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { Music, FileText, Mic, ChevronRight } from 'lucide-react-native';
 import ScreenContainer from '../../components/ScreenContainer';
-import GradientButton from '../../components/GradientButton';
 import { COLORS, SIZES, SPACING } from '../../constants/theme';
 
 const { width } = Dimensions.get('window');
 
 const SLIDES = [
   {
+    id: 'generate',
     title: 'Prompt to Music',
     description: 'Transform your thoughts into professional tracks with AI music generation.',
     icon: Music,
     color: COLORS.primary,
+    route: 'Generate',
   },
   {
+    id: 'lyrics',
     title: 'AI Lyrics Studio',
     description: 'Never face writer\'s block again. Generate soulful lyrics in seconds.',
     icon: FileText,
     color: COLORS.secondary,
+    route: 'LyricsGenerator',
   },
   {
+    id: 'vocal',
     title: 'Vocal AI Mix',
     description: 'Upload your vocals and let AI create the perfect background music for you.',
     icon: Mic,
     color: COLORS.accent,
+    route: 'VocalUpload',
   },
 ];
 
@@ -44,22 +49,32 @@ const OnboardingScreen = ({ navigation }) => {
   return (
     <ScreenContainer style={styles.container}>
       <View style={styles.content}>
-        <View style={[styles.iconCircle, { backgroundColor: slide.color + '20' }]}>
-          <slide.icon color={slide.color} size={80} />
-        </View>
-        
-        <Text style={styles.title}>{slide.title}</Text>
-        <Text style={styles.description}>{slide.description}</Text>
+        {/* Interactive Slide Card */}
+        <TouchableOpacity 
+          style={styles.slideCard} 
+          activeOpacity={0.88}
+          onPress={() => navigation.navigate(slide.route)}
+        >
+          <View style={[styles.iconCircle, { backgroundColor: slide.color + '20' }]}>
+            <slide.icon color={slide.color} size={80} />
+          </View>
+          
+          <Text style={styles.title}>{slide.title}</Text>
+          <Text style={styles.description}>{slide.description}</Text>
+          <Text style={[styles.tapToExplore, { color: slide.color }]}>Tap card to explore feature →</Text>
+        </TouchableOpacity>
 
+        {/* Slide Indicators */}
         <View style={styles.indicatorRow}>
           {SLIDES.map((_, i) => (
-            <View 
-              key={i} 
-              style={[
-                styles.indicator, 
-                currentSlide === i ? { backgroundColor: slide.color, width: 24 } : { backgroundColor: COLORS.surfaceLight }
-              ]} 
-            />
+            <TouchableOpacity key={i} onPress={() => setCurrentSlide(i)}>
+              <View 
+                style={[
+                  styles.indicator, 
+                  currentSlide === i ? { backgroundColor: slide.color, width: 24 } : { backgroundColor: COLORS.surfaceLight }
+                ]} 
+              />
+            </TouchableOpacity>
           ))}
         </View>
       </View>
@@ -89,6 +104,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  slideCard: {
+    alignItems: 'center',
+    padding: SPACING.lg,
+    width: '100%',
+  },
   iconCircle: {
     width: 160,
     height: 160,
@@ -110,6 +130,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24,
     paddingHorizontal: SPACING.lg,
+  },
+  tapToExplore: {
+    fontSize: 13,
+    fontWeight: '700',
+    marginTop: 16,
   },
   indicatorRow: {
     flexDirection: 'row',

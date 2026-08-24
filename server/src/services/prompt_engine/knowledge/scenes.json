@@ -1,0 +1,14 @@
+{
+  "wedding": [
+    "romantic",
+    "happy"
+  ],
+  "festival": [
+    "happy",
+    "edm"
+  ],
+  "funeral": [
+    "sad",
+    "cinematic"
+  ]
+}

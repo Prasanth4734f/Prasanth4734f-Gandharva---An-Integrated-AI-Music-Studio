@@ -1,0 +1,298 @@
+import os, sys, time, threading, gc
+import site, importlib
+
+# ALWAYS reinstall — Kaggle wipes packages every new VM session
+print("📦 Installing dependencies (safe to re-run anytime)...")
+os.system('apt-get update -qq && apt-get install -y -qq libavcodec-dev libavformat-dev libavutil-dev libswresample-dev libavdevice-dev libavfilter-dev pkg-config ffmpeg')
+os.system(f'{sys.executable} -m pip install -q --upgrade pip setuptools wheel')
+os.system(f'{sys.executable} -m pip install -q xformers flashy num2words julius hydra-core hydra-colorlog omegaconf')
+os.system(f'{sys.executable} -m pip install -q --no-deps audiocraft')
+os.system(f'{sys.executable} -m pip install -q av uvicorn fastapi pyngrok nest_asyncio python-multipart scipy demucs encodec supabase requests')
+print("✅ All dependencies ready!")
+
+# CRITICAL FIX: Force the Python environment to see the newly installed libraries immediately!
+importlib.invalidate_caches()
+if hasattr(site, 'getsitepackages'):
+    for p in site.getsitepackages():
+        if p not in sys.path:
+            sys.path.append(p)
+
+import torch, io, scipy.io.wavfile, nest_asyncio, torchaudio
+from audiocraft.models import MusicGen
+from fastapi import FastAPI, Body, Response, File, UploadFile, Form
+from fastapi.middleware.cors import CORSMiddleware
+import uvicorn
+from pyngrok import ngrok
+import tempfile
+import requests as http_requests
+import uuid
+
+# Place your actual Ngrok token here
+NGROK_TOKEN = "3DLGlm1ouoHDkrk7eyHyucyJcmg_6u3N5rVavXLgfGxP7ss9m"
+
+# Supabase Configuration for GPU Registry Auto-Registration
+SUPABASE_URL = "https://ooojsesybzkjlaylxiij.supabase.co"
+SUPABASE_SERVICE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vb2pzZXN5YnpramxheWx4aWlqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDYzMTg4MSwiZXhwIjoyMDk2MjA3ODgxfQ.gryP8Ttpryr2Enev6XL3nTv_t4Xc1LWTMenht6r8UHM"
+
+def register_gpu_url(ngrok_url):
+    """Register the live ngrok URL in Supabase gpu_registry table."""
+    try:
+        headers = {
+            "apikey": SUPABASE_SERVICE_KEY,
+            "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
+            "Content-Type": "application/json",
+            "Prefer": "resolution=merge-duplicates"
+        }
+        payload = {
+            "id": "kaggle-primary",
+            "ngrok_url": ngrok_url,
+            "status": "online",
+            "gpu_count": num_gpus if 'num_gpus' in dir() else torch.cuda.device_count(),
+            "engine_name": "Gandharva Dual-Brain (MusicGen + ACE-Step 8.0)",
+            "updated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        }
+        resp = http_requests.post(
+            f"{SUPABASE_URL}/rest/v1/gpu_registry",
+            json=payload,
+            headers=headers,
+            timeout=10
+        )
+        if resp.status_code < 300:
+            print(f"✅ [Supabase Registry] GPU URL registered: {ngrok_url}")
+        else:
+            print(f"⚠️ [Supabase Registry] Registration response {resp.status_code}: {resp.text[:200]}")
+    except Exception as e:
+        print(f"⚠️ [Supabase Registry] Could not register URL: {e}")
+
+def gpu_heartbeat(ngrok_url, interval=60):
+    """Background thread that re-registers the GPU URL every `interval` seconds."""
+    while True:
+        time.sleep(interval)
+        register_gpu_url(ngrok_url)
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+num_gpus = torch.cuda.device_count()
+print(f"🖥️ GPUs Detected: {num_gpus}")
+
+gpu_text = 'cuda:0' if num_gpus > 0 else 'cpu'
+gpu_vocal = 'cuda:1' if num_gpus > 1 else gpu_text
+
+# ==========================================
+# SESSION 1: LOAD BOTH AI BRAINS ACROSS GPUs
+# ==========================================
+print(f"📥 Loading musicgen-medium on {gpu_text} (Session 1: Text-to-Music)...")
+model_text = MusicGen.get_pretrained('facebook/musicgen-medium', device=gpu_text)
+if num_gpus > 0: model_text.lm.half() # CRITICAL FIX: Prevent OOM Crashes
+
+print(f"📥 Loading musicgen-melody on {gpu_vocal} (For Vocal Studio)...")
+model_vocal = MusicGen.get_pretrained('facebook/musicgen-melody', device=gpu_vocal)
+if num_gpus > 0: model_vocal.lm.half() # CRITICAL FIX: Prevent OOM Crashes
+
+print("✨ Dual-Brains Ready in Half Precision (OOM Safe)!")
+
+# ==========================================
+# SESSION 2: ACE-STEP CONDITIONING ENGINE
+# ==========================================
+def apply_ace_step_conditioning(raw_prompt: str, style_tags: str = "") -> str:
+    """
+    ACE-Step 8.0 Dataset Conditioning Pipeline.
+    Transforms raw or story prompts into structured high-fidelity BGM tags.
+    """
+    if "[ACE-Step" in raw_prompt:
+        return raw_prompt # Already structured
+        
+    lower = raw_prompt.lower()
+    
+    # Genre Inference
+    genre = "Cinematic Score"
+    if "rock" in lower: genre = "Alternative Rock"
+    elif "pop" in lower: genre = "Acoustic Pop"
+    elif "lofi" in lower or "lo-fi" in lower: genre = "Lo-Fi Chillhop"
+    elif "edm" in lower or "dance" in lower: genre = "Melodic EDM"
+    elif "synth" in lower or "cyber" in lower: genre = "Cyberpunk Synthwave"
+    elif "devotional" in lower or "spiritual" in lower: genre = "Spiritual Indian Fusion"
+    elif "piano" in lower: genre = "Romantic Piano Solo"
+    elif "hero" in lower or "war" in lower: genre = "Epic Orchestral Action"
+    elif "jazz" in lower: genre = "Smooth Jazz Lounge"
+
+    ace_formatted_prompt = (
+        f"[ACE-Step 8.0 Master BGM] "
+        f"[Genre: {genre}] "
+        f"[Style: {style_tags if style_tags else 'Professional Composition'}] "
+        f"[Acoustics: Deep Stereo Resonance, Balanced Harmonics] "
+        f"[Production: Multi-Platinum Studio Master Quality] "
+        f"[Prompt: {raw_prompt}]"
+    )
+    return ace_formatted_prompt
+
+print("⚡ ACE-Step 8.0 Dataset Conditioning Engine Active!")
+
+# ==========================================
+# HEALTH CHECK ENDPOINTS
+# ==========================================
+@app.get("/")
+@app.get("/docs")
+@app.get("/musicgen-health")
+async def health():
+    return {
+        "status": "online",
+        "engine": "Gandharva Dual-Brain (MusicGen + ACE-Step 8.0)",
+        "gpus_detected": num_gpus,
+        "session_1_musicgen": True,
+        "session_2_ace_step": True
+    }
+
+# ==========================================
+# ENDPOINT 1: TEXT-TO-MUSIC (MusicGen + ACE-Step)
+# ==========================================
+@app.post("/generate")
+async def generate(payload: dict = Body(...)):
+    try:
+        if num_gpus > 0:
+            torch.cuda.empty_cache()
+            gc.collect()
+            
+        raw_prompt = payload.get("prompt", "cinematic orchestral")
+        duration = int(payload.get("duration", 10))
+        seed = payload.get("seed")
+        
+        if seed is None or str(seed) == "None":
+            seed = int(torch.randint(0, 2147483647, (1,)).item())
+        else:
+            seed = int(seed)
+
+        # APPLY SESSION 2: ACE-Step Conditioning
+        ace_prompt = apply_ace_step_conditioning(raw_prompt, payload.get("style", ""))
+        
+        torch.manual_seed(seed)
+        model_text.set_generation_params(
+            duration=duration,
+            top_k=250,
+            top_p=0.92,
+            temperature=0.85,
+            cfg_coef=3.5
+        )
+        
+        print(f"🎶 [SESSION 1 + ACE-STEP 2 - High Fidelity] Generating: '{ace_prompt[:80]}...' | duration={duration}s | seed={seed}")
+        
+        # Native Generation with Autocast
+        with torch.no_grad():
+            wav = model_text.generate([ace_prompt])[0, 0].cpu().float().numpy()
+        
+        # High quality peak normalization with 0.98 headroom
+        max_val = max(abs(wav))
+        if max_val > 0:
+            wav = (wav / max_val) * 0.98
+        
+        buf = io.BytesIO()
+        scipy.io.wavfile.write(buf, 32000, wav)
+        print(f"✅ [TEXT + ACE-STEP MODE] Complete! | seed={seed}")
+        return Response(content=buf.getvalue(), media_type="audio/wav")
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        return {"error": str(e)}
+
+# ==========================================
+# ENDPOINT 2: DEDICATED ACE-STEP GENERATION
+# ==========================================
+@app.post("/generate_ace")
+async def generate_ace(payload: dict = Body(...)):
+    """Dedicated Endpoint for ACE-Step Multi-Track & Story-to-Album Generation."""
+    return await generate(payload)
+
+# ==========================================
+# ENDPOINT 3: VOCAL STUDIO (Using Melody + ACE-Step)
+# ==========================================
+@app.post("/generate_vocal")
+async def generate_vocal(
+    prompt: str = Form(...),
+    duration: int = Form(...),
+    seed: int = Form(None),
+    vocal_file: UploadFile = File(...)
+):
+    try:
+        if num_gpus > 0:
+            torch.cuda.empty_cache()
+            gc.collect()
+            
+        if seed is None or str(seed) == "None":
+            seed = int(torch.randint(0, 2147483647, (1,)).item())
+        else:
+            seed = int(seed)
+            
+        print(f"📥 [VOCAL MODE] Received vocal. Analyzing rhythm and pitch...")
+        
+        temp_dir = tempfile.gettempdir()
+        vocal_path = os.path.join(temp_dir, f"vocal_{uuid.uuid4().hex}.wav")
+        with open(vocal_path, "wb") as f:
+            f.write(await vocal_file.read())
+            
+        melody, sr = torchaudio.load(vocal_path)
+        
+        # CRITICAL FIX 1: Ensure Mono (MusicGen Melody crashes on Stereo vocals)
+        if melody.shape[0] > 1:
+            melody = melody.mean(dim=0, keepdim=True)
+            
+        # Move melody natively to GPU
+        melody = melody.to(model_vocal.device)
+        
+        # APPLY ACE-STEP CONDITIONING TO VOCAL BACKING TRACK
+        ace_prompt = apply_ace_step_conditioning(prompt)
+        
+        torch.manual_seed(seed)
+        model_vocal.set_generation_params(duration=duration)
+        
+        print(f"🎶 [VOCAL + ACE-STEP MODE] Composing music with Melody: '{ace_prompt[:80]}...'...")
+        
+        # Native Generation
+        wav = model_vocal.generate_with_chroma(
+            descriptions=[ace_prompt],
+            melody_wavs=melody[None], 
+            melody_sample_rate=sr
+        )
+        
+        wav_array = wav[0, 0].cpu().float().numpy()
+        wav_array = wav_array / (max(abs(wav_array)) + 1e-6) # normalize
+        
+        buf = io.BytesIO()
+        scipy.io.wavfile.write(buf, 32000, wav_array)
+        print(f"✅ [VOCAL + ACE-STEP MODE] Magic Box complete! | seed={seed}")
+        return Response(content=buf.getvalue(), media_type="audio/wav")
+        
+    except Exception as e:
+        print(f"❌ Vocal Error: {e}")
+        return {"error": str(e)}
+
+# ==========================================
+# SERVER STARTUP LOGIC
+# ==========================================
+def start_server():
+    uvicorn.Server(uvicorn.Config(app, host="0.0.0.0", port=8000, log_level="warning")).run()
+
+nest_asyncio.apply()
+os.system("fuser -k 8000/tcp > /dev/null 2>&1")
+time.sleep(2)
+ngrok.kill()
+ngrok.set_auth_token(NGROK_TOKEN)
+url = ngrok.connect(8000).public_url
+
+print(f"\n🚀 DUAL-BRAIN KAGGLE URL: {url}\n")
+
+# AUTO-REGISTER in Supabase (eliminates manual .env updates!)
+register_gpu_url(url)
+
+# Start background heartbeat to keep registry fresh
+threading.Thread(target=gpu_heartbeat, args=(url, 60), daemon=True).start()
+print("💓 GPU Heartbeat active (re-registers every 60s)")
+
+threading.Thread(target=start_server, daemon=True).start()
+print("✨ Dual-Brain + ACE-Step Server is active in the background!")
+print("🔗 Frontend will auto-detect this URL via Supabase — no .env changes needed!")

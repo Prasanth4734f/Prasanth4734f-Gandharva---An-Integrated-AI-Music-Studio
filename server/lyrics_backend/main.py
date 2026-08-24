@@ -9,13 +9,8 @@ from sqlmodel import SQLModel
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from router import router
-from database import engine
-import models
 
-# Automatically create SQLModel database tables at startup
-print("[Startup] Creating SQLite database tables...")
-SQLModel.metadata.create_all(engine)
-print("[Startup] Database tables verified and ready!")
+print("[Startup] Using Supabase REST API for Database Operations.")
 
 app = FastAPI(
     title="GANDHARVA – AI Music Studio Backend",

@@ -1,0 +1,15 @@
+{
+  "standard": [
+    "Intro",
+    "Verse",
+    "Chorus",
+    "Bridge",
+    "Outro"
+  ],
+  "cinematic": [
+    "Build",
+    "Drop",
+    "Climax",
+    "Fade"
+  ]
+}

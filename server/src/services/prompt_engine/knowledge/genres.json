@@ -1,0 +1,17 @@
+{
+  "cinematic": {
+    "reverb": "Hall Reverb",
+    "dynamics": "Wide Dynamics",
+    "stereo": "Wide Stereo"
+  },
+  "lofi": {
+    "reverb": "Room Reverb",
+    "dynamics": "Compressed",
+    "stereo": "Narrow Stereo"
+  },
+  "edm": {
+    "reverb": "Plate Reverb",
+    "dynamics": "Heavy Compression",
+    "stereo": "Ultra Wide"
+  }
+}

@@ -45,4 +45,17 @@ yarn-error.*
 venv/
 __pycache__/
 *.wav
+*.mp3
+*.m4a
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.db
 scratch/
+scratch*/
+scratch_*.js
+scratch_*.py
+server/scratch_*.js
+server/lyrics_backend/data/
+gandharva_lyrics_v1/

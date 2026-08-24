@@ -1,9 +1,9 @@
 export const COLORS = {
-  background: '#0A0514',
-  surface: '#150A2A',
-  surfaceLight: '#2E1559',
+  background: '#0A0A0A',
+  surface: '#161616',
+  surfaceLight: '#262626',
   primary: '#8B5CF6',
-  secondary: '#06B6D4',
+  secondary: '#EC4899',
   accent: '#06B6D4',
   text: '#FFFFFF',
   textSecondary: '#D1D5DB',
@@ -16,9 +16,10 @@ export const COLORS = {
   white: '#FFFFFF',
   black: '#000000',
   gradients: {
-    primary: ['#0A0514', '#150A2A', '#2E1559'],
-    secondary: ['#2E1559', '#8B5CF6'],
-    background: ['#0A0514', '#150A2A', '#2E1559'],
+    primary: ['#0A0A0A', '#161616', '#262626'],
+    secondary: ['#161616', '#8B5CF6'],
+    pinkBlue: ['#831843', '#9D174D', '#BE185D', '#D946EF', '#1E40AF'],
+    background: ['#0A0A0A', '#161616', '#262626'],
     glass: ['rgba(255, 255, 255, 0.08)', 'rgba(255, 255, 255, 0.02)'],
   }
 };
