@@ -3,7 +3,7 @@
 # ⚡ GANDHARVA — AN INTEGRATED AI MUSIC STUDIO
 
 <p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Outfit&size=34&duration=2500&pause=800&color=#FF1493&center=true&vCenter=true&width=850&height=80&lines=NEXT-GEN+PROMPT-TO-MUSIC+COMPOSITION+PIPELINE;MULTILINGUAL+TELUGU%2C+HINDI+%26+ENGLISH+LYRICS;LIVE+PLAYGROUND+PIANO%2C+DRUMS+%26+GUITAR;VOCAL+STUDIO+AUTO-TUNE+%26+PITCH+ISOLATOR+(DEVELOPING);PRO+MULTI-TRACK+MUSIC+EDITOR" alt="Gandharva Master Animated Banner" />
+  <img src="https://readme-typing-svg.demolab.com?font=Outfit&size=34&duration=2500&pause=800&color=FF1493&center=true&vCenter=true&width=850&height=80&lines=NEXT-GEN+PROMPT-TO-MUSIC+COMPOSITION+PIPELINE;MULTILINGUAL+TELUGU%2C+HINDI+%26+ENGLISH+LYRICS;LIVE+PLAYGROUND+PIANO%2C+DRUMS+%26+GUITAR;VOCAL+STUDIO+AUTO-TUNE+%26+PITCH+ISOLATOR+(DEVELOPING);PRO+MULTI-TRACK+MUSIC+EDITOR" alt="Gandharva Master Animated Banner" />
 </p>
 
 <p align="center">
